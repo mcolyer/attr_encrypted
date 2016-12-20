@@ -88,13 +88,18 @@ if defined?(ActiveRecord::Base)
             # for the db columns
 
             # Use with_connection so the connection doesn't stay pinned to the thread.
-            ::ActiveRecord::Base.connection_pool.with_connection do |connection|
+            columns_and_methods = ::ActiveRecord::Base.connection_pool.with_connection do |connection|
               if connection.active? && table_exists?
                 columns_hash.keys.inject(super) {|instance_methods, column_name| instance_methods.concat [column_name.to_sym, :"#{column_name}="]}
-              else
-                super
               end
             end
+
+            if columns_and_methods
+              columns_and_methods
+            else
+              super
+            end
+
           rescue
             super
           end
